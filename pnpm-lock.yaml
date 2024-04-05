@@ -268,6 +268,9 @@ importers:
       cypress-split:
         specifier: ^1.23.0
         version: 1.23.0(@babel/core@7.24.4)
+      happy-dom:
+        specifier: ^14.5.1
+        version: 14.5.1
       jsdom:
         specifier: ^24.0.0
         version: 24.0.0
@@ -291,7 +294,7 @@ importers:
         version: 0.6.4(eslint@8.57.0)(typescript@5.4.5)(vite@5.2.8)
       vitest:
         specifier: ^1.5.0
-        version: 1.5.0(@types/node@20.12.7)(jsdom@24.0.0)(lightningcss@1.24.1)
+        version: 1.5.0(@types/node@20.12.7)(happy-dom@14.5.1)(jsdom@24.0.0)(lightningcss@1.24.1)
 
   js/apps/keycloak-server:
     dependencies:
@@ -487,7 +490,7 @@ importers:
         version: 2.0.1(vite@5.2.8)
       vitest:
         specifier: ^1.5.0
-        version: 1.5.0(@types/node@20.12.7)(jsdom@24.0.0)(lightningcss@1.24.1)
+        version: 1.5.0(@types/node@20.12.7)(happy-dom@14.5.1)(jsdom@24.0.0)(lightningcss@1.24.1)
 
   themes/src/main/resources/theme/keycloak/common/resources:
     dependencies:
@@ -2318,7 +2321,7 @@ packages:
       dom-accessibility-api: 0.6.3
       lodash: 4.17.21
       redent: 3.0.0
-      vitest: 1.5.0(@types/node@20.12.7)(jsdom@24.0.0)(lightningcss@1.24.1)
+      vitest: 1.5.0(@types/node@20.12.7)(happy-dom@14.5.1)(jsdom@24.0.0)(lightningcss@1.24.1)
     dev: true
 
   /@testing-library/react@15.0.1(react-dom@18.2.0)(react@18.2.0):
@@ -5671,6 +5674,15 @@ packages:
       through2: 2.0.5
     dev: false
 
+  /happy-dom@14.5.1:
+    resolution: {integrity: sha512-nCmCszZnhHHvcY3gDqLNZrU71QzCT1sI2OUQy2YSn3omMYWe+QHSTO1PfS/1r6fds6zt6GI7L1tRIxo7RgC8lg==}
+    engines: {node: '>=16.0.0'}
+    dependencies:
+      entities: 4.5.0
+      webidl-conversions: 7.0.0
+      whatwg-mimetype: 3.0.0
+    dev: true
+
   /has-bigints@1.0.2:
     resolution: {integrity: sha512-tSvCKtBr9lkF0Ex0aQiP9N+OpV4zi2r/Nee5VkRDbaqv35RLYMzbwQfFSZZH0kR+Rd6302UJZ2p/bJCEoR3VoQ==}
     dev: true
@@ -8823,7 +8835,7 @@ packages:
       fsevents: 2.3.3
     dev: true
 
-  /vitest@1.5.0(@types/node@20.12.7)(jsdom@24.0.0)(lightningcss@1.24.1):
+  /vitest@1.5.0(@types/node@20.12.7)(happy-dom@14.5.1)(jsdom@24.0.0)(lightningcss@1.24.1):
     resolution: {integrity: sha512-d8UKgR0m2kjdxDWX6911uwxout6GHS0XaGH1cksSIVVG8kRlE7G7aBw7myKQCvDI5dT4j7ZMa+l706BIORMDLw==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
@@ -8858,6 +8870,7 @@ packages:
       chai: 4.4.1
       debug: 4.3.4(supports-color@8.1.1)
       execa: 8.0.1
+      happy-dom: 14.5.1
       jsdom: 24.0.0
       local-pkg: 0.5.0
       magic-string: 0.30.9
@@ -8979,6 +8992,11 @@ packages:
     engines: {node: '>=18'}
     dependencies:
       iconv-lite: 0.6.3
+    dev: true
+
+  /whatwg-mimetype@3.0.0:
+    resolution: {integrity: sha512-nt+N2dzIutVRxARx1nghPKGv1xHikU7HKdfafKkLNLindmPU/ch3U31NOCGGA/dmPcmb1VlofO0vnKAcsm0o/Q==}
+    engines: {node: '>=12'}
     dev: true
 
   /whatwg-mimetype@4.0.0:
