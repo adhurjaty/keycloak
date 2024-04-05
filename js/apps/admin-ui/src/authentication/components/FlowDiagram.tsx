@@ -8,7 +8,6 @@ import {
   MiniMap,
   Node,
   NodeMouseHandler,
-  NodeTypes,
   Position,
   ReactFlow,
   ReactFlowInstance,
@@ -31,6 +30,14 @@ type FlowDiagramProps = {
   executionList: ExecutionList;
 };
 
+const nodeTypes = {
+  conditional: ConditionalNode,
+  startSubFlow: StartSubFlowNode,
+  endSubFlow: EndSubFlowNode,
+} as const;
+
+type NodeType = keyof typeof nodeTypes;
+
 const createEdge = (fromNode: string, toNode: string): Edge => ({
   id: `edge-${fromNode}-to-${toNode}`,
   type: "buttonEdge",
@@ -47,14 +54,10 @@ const createEdge = (fromNode: string, toNode: string): Edge => ({
   },
 });
 
-const createNode = (ex: ExpandableExecution): Node => {
-  let nodeType: string | undefined = undefined;
-  if (ex.executionList) {
-    nodeType = "startSubFlow";
-  }
-  if (providerConditionFilter(ex)) {
-    nodeType = "conditional";
-  }
+const createNode = (
+  ex: { id?: string; displayName?: string },
+  nodeType?: NodeType,
+): Node => {
   return {
     id: ex.id!,
     type: nodeType,
@@ -65,10 +68,6 @@ const createNode = (ex: ExpandableExecution): Node => {
   };
 };
 
-const renderParallelNodes = (execution: ExpandableExecution): Node[] => [
-  createNode(execution),
-];
-
 const renderParallelEdges = (
   start: AuthenticationExecutionInfoRepresentation,
   execution: ExpandableExecution,
@@ -76,10 +75,6 @@ const renderParallelEdges = (
 ): Edge[] => [
   createEdge(start.id!, execution.id!),
   createEdge(execution.id!, end.id!),
-];
-
-const renderSequentialNodes = (execution: ExpandableExecution): Node[] => [
-  createNode(execution),
 ];
 
 const renderSequentialEdges = (
@@ -108,25 +103,18 @@ const renderSequentialEdges = (
 const renderSubFlowNodes = (execution: ExpandableExecution): Node[] => {
   const nodes: Node[] = [];
 
-  nodes.push({
-    id: execution.id!,
-    type: "startSubFlow",
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-    data: { label: execution.displayName! },
-    position: { x: 0, y: 0 },
-  });
+  nodes.push(createNode(execution, "startSubFlow"));
 
   const endSubFlowId = `flow-end-${execution.id}`;
-
-  nodes.push({
-    id: endSubFlowId,
-    type: "endSubFlow",
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-    data: { label: execution.displayName! },
-    position: { x: 0, y: 0 },
-  });
+  nodes.push(
+    createNode(
+      {
+        id: endSubFlowId,
+        displayName: execution.displayName!,
+      },
+      "endSubFlow",
+    ),
+  );
 
   return nodes.concat(renderFlowNodes(execution.executionList || []));
 };
@@ -167,14 +155,12 @@ const renderFlowNodes = (executionList: ExpandableExecution[]): Node[] => {
     if (execution.executionList) {
       elements = elements.concat(renderSubFlowNodes(execution));
     } else {
-      if (
-        execution.requirement === "ALTERNATIVE" ||
-        execution.requirement === "DISABLED"
-      ) {
-        elements = elements.concat(renderParallelNodes(execution));
-      } else {
-        elements = elements.concat(renderSequentialNodes(execution));
-      }
+      elements.push(
+        createNode(
+          execution,
+          providerConditionFilter(execution) ? "conditional" : undefined,
+        ),
+      );
     }
   }
 
@@ -216,12 +202,6 @@ const renderFlowEdges = (
   }
 
   return elements;
-};
-
-const nodeTypes: NodeTypes = {
-  conditional: ConditionalNode,
-  startSubFlow: StartSubFlowNode,
-  endSubFlow: EndSubFlowNode,
 };
 
 const edgeTypes: ButtonEdges = {
