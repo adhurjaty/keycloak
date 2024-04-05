@@ -68,38 +68,6 @@ const createNode = (
   };
 };
 
-const renderParallelEdges = (
-  start: AuthenticationExecutionInfoRepresentation,
-  execution: ExpandableExecution,
-  end: AuthenticationExecutionInfoRepresentation,
-): Edge[] => [
-  createEdge(start.id!, execution.id!),
-  createEdge(execution.id!, end.id!),
-];
-
-const renderSequentialEdges = (
-  start: AuthenticationExecutionInfoRepresentation,
-  execution: ExpandableExecution,
-  end: AuthenticationExecutionInfoRepresentation,
-  prefExecution: ExpandableExecution,
-  isFirst: boolean,
-  isLast: boolean,
-): Edge[] => {
-  const edges: Edge[] = [];
-
-  if (isFirst) {
-    edges.push(createEdge(start.id!, execution.id!));
-  } else {
-    edges.push(createEdge(prefExecution.id!, execution.id!));
-  }
-
-  if (isLast) {
-    edges.push(createEdge(execution.id!, end.id!));
-  }
-
-  return edges;
-};
-
 const renderSubFlowNodes = (execution: ExpandableExecution): Node[] => {
   const nodes: Node[] = [];
 
@@ -117,34 +85,6 @@ const renderSubFlowNodes = (execution: ExpandableExecution): Node[] => {
   );
 
   return nodes.concat(renderFlowNodes(execution.executionList || []));
-};
-
-const renderSubFlowEdges = (
-  execution: ExpandableExecution,
-  start: AuthenticationExecutionInfoRepresentation,
-  end: AuthenticationExecutionInfoRepresentation,
-  prefExecution?: ExpandableExecution,
-): Edge[] => {
-  const edges: Edge[] = [];
-
-  const endSubFlowId = `flow-end-${execution.id}`;
-
-  edges.push(
-    createEdge(
-      prefExecution && prefExecution.requirement !== "ALTERNATIVE"
-        ? prefExecution.id!
-        : start.id!,
-      execution.id!,
-    ),
-  );
-  edges.push(createEdge(endSubFlowId, end.id!));
-
-  return edges.concat(
-    renderFlowEdges(execution, execution.executionList || [], {
-      ...execution,
-      id: endSubFlowId,
-    }),
-  );
 };
 
 const renderFlowNodes = (executionList: ExpandableExecution[]): Node[] => {
@@ -173,32 +113,38 @@ const renderFlowEdges = (
   end: AuthenticationExecutionInfoRepresentation,
 ): Edge[] => {
   let elements: Edge[] = [];
+  let prevExecutionId = start.id!;
+  let isLastExecutionBypassable = false;
 
   for (let index = 0; index < executionList.length; index++) {
     const execution = executionList[index];
+    let executionId = execution.id!;
+
+    elements.push(createEdge(prevExecutionId, executionId));
+
     if (execution.executionList) {
+      const endId = `flow-end-${executionId}`;
       elements = elements.concat(
-        renderSubFlowEdges(execution, start, end, executionList[index - 1]),
+        renderFlowEdges(execution, execution.executionList, {
+          id: endId,
+        }),
       );
-    } else {
-      if (
-        execution.requirement === "ALTERNATIVE" ||
-        execution.requirement === "DISABLED"
-      ) {
-        elements = elements.concat(renderParallelEdges(start, execution, end));
-      } else {
-        elements = elements.concat(
-          renderSequentialEdges(
-            start,
-            execution,
-            end,
-            executionList[index - 1],
-            index === 0,
-            index === executionList.length - 1,
-          ),
-        );
-      }
+      executionId = endId;
     }
+
+    isLastExecutionBypassable =
+      execution.requirement === "ALTERNATIVE" ||
+      execution.requirement === "DISABLED";
+
+    if (isLastExecutionBypassable) {
+      elements.push(createEdge(executionId, end.id!));
+    } else {
+      prevExecutionId = executionId;
+    }
+  }
+
+  if (!isLastExecutionBypassable) {
+    elements.push(createEdge(prevExecutionId, end.id!));
   }
 
   return elements;
